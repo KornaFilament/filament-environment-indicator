@@ -80,7 +80,7 @@ class EnvironmentIndicatorPlugin implements Plugin
 
     public function register(Panel $panel): void
     {
-        $panel->renderHook($this->getBadgePosition(), function () {
+        $panel->renderHook($this->getBadgePosition($panel), function () {
             $html = '';
 
             if (! $this->evaluate($this->visible)) {
@@ -115,13 +115,20 @@ class EnvironmentIndicatorPlugin implements Plugin
                 return '';
             }
 
-            return new HtmlString("
+            $borderWidth = $this->evaluate($this->borderWidth);
+            $borderColor = $this->getColor()['500'];
+
+            return new HtmlString(<<<HTML
                 <style>
                     .fi-topbar {
-                        border-top: {$this->evaluate($this->borderWidth)}px solid {$this->getColor()['500']} !important;
+                        border-top: {$borderWidth}px solid {$borderColor} !important;
+                    }
+
+                    body:not(.fi-body-has-topbar) {
+                        border-top: {$borderWidth}px solid {$borderColor} !important;
                     }
                 </style>
-            ");
+            HTML);
         });
     }
 
@@ -181,9 +188,17 @@ class EnvironmentIndicatorPlugin implements Plugin
         return $this;
     }
 
-    protected function getBadgePosition(): string
+    protected function getBadgePosition(Panel $panel): string
     {
-        return $this->badgePosition ?: PanelsRenderHook::GLOBAL_SEARCH_BEFORE;
+        if ($this->badgePosition) {
+            return $this->badgePosition;
+        }
+
+        if (! $panel->hasTopbar()) {
+            return PanelsRenderHook::SIDEBAR_LOGO_AFTER;
+        }
+
+        return PanelsRenderHook::GLOBAL_SEARCH_BEFORE;
     }
 
     protected function getColor(): array
