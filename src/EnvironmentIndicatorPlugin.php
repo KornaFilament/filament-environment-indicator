@@ -113,11 +113,15 @@ class EnvironmentIndicatorPlugin implements Plugin
                 return '';
             }
 
-            if ($this->evaluate($this->showBorder)) {
-                $borderWidth = $this->evaluate($this->borderWidth);
-                $borderColor = $this->getColor()['500'];
+            if (! $this->evaluate($this->showBorder)) {
+                return '';
+            }
 
-                $css = "
+            $borderWidth = $this->evaluate($this->borderWidth);
+            $borderColor = $this->getColor()['500'];
+
+            return new HtmlString(<<<HTML
+                <style>
                     .fi-topbar {
                         border-top: {$borderWidth}px solid {$borderColor} !important;
                     }
@@ -125,10 +129,8 @@ class EnvironmentIndicatorPlugin implements Plugin
                     body:not(.fi-body-has-topbar) {
                         border-top: {$borderWidth}px solid {$borderColor} !important;
                     }
-                ";
-            }
-
-            return new HtmlString("<style>{$css}</style>");
+                </style>
+            HTML);
         });
     }
 
